@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Danavis Engineering - Light PDF Report</title>
+    <title>Danavis Engineering - Professional Report</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     
@@ -49,8 +49,8 @@
     </div>
 
     <div class="info-grid">
-        <div><label>First and Last Name</label><input type="text" id="empName" placeholder="e.g. John Doe"></div>
-        <div><label>Project / Week No.</label><input type="text" id="projectName" placeholder="e.g. Site A / Week 12"></div>
+        <div><label>First and Last Name</label><input type="text" id="empName" placeholder="John Doe"></div>
+        <div><label>Project / Week No.</label><input type="text" id="projectName" placeholder="Site X / Week 12"></div>
     </div>
 
     <div style="margin-bottom:15px;">
@@ -66,8 +66,8 @@
     </table>
 
     <div class="btn-group">
-        <button class="btn btn-pdf" id="genBtn" onclick="generateLightPDF()">1. Generate Light PDF</button>
-        <a href="#" class="btn btn-mail" id="mailBtn" onclick="prepareEmail()">2. Prepare Email</a>
+        <button class="btn btn-pdf" id="genBtn" onclick="generateLightPDF()">1. Generate & Save PDF</button>
+        <button class="btn btn-mail" id="mailBtn" onclick="prepareEmail()">2. Send Email to Management</button>
     </div>
 </div>
 
@@ -102,7 +102,7 @@
     for(let i=0; i<7; i++) {
         body.innerHTML += `<tr>
             <td data-label="Date"><input type="date" class="r-date"></td>
-            <td data-label="Task"><input type="text" class="r-task" placeholder="Task details..."></td>
+            <td data-label="Task"><input type="text" class="r-task" placeholder="..."></td>
             <td data-label="Hrs"><input type="number" class="r-hrs" placeholder="0"></td>
         </tr>`;
     }
@@ -121,14 +121,34 @@
     function prepareEmail() {
         const name = document.getElementById('empName').value || "Employee";
         const project = document.getElementById('projectName').value || "Project";
-        const subject = encodeURIComponent(`Timesheet - ${name} - ${project}`);
-        const mailtoLink = `mailto:projects@danavisengineering.com?subject=${subject}`;
+        const dates = document.querySelectorAll('.r-date');
+        const tasks = document.querySelectorAll('.r-task');
+        const hours = document.querySelectorAll('.r-hrs');
+        
+        let total = 0;
+        let workSummary = "";
+
+        dates.forEach((d, i) => {
+            const h = parseFloat(hours[i].value) || 0;
+            if (h > 0) {
+                total += h;
+                workSummary += `- ${d.value}: ${tasks[i].value || 'No description'} (${h} hrs)%0D%0A`;
+            }
+        });
+
+        const subject = encodeURIComponent(`Timesheet Report - ${name} - ${project}`);
+        
+        // E-mail Body Template
+        const emailBody = `Dear Management,%0D%0A%0D%0APlease find my weekly timesheet report attached.%0D%0A%0D%0A--- REPORT SUMMARY ---%0D%0AEmployee: ${name}%0D%0AProject/Ref: ${project}%0D%0ATotal Hours: ${total} hrs%0D%0A%0D%0ADaily breakdown:%0D%0A${workSummary}%0D%0A----------------------%0D%0A%0D%0AKind regards,%0D%0A${name}`;
+
+        const mailtoLink = `mailto:projects@danavisengineering.com?subject=${subject}&body=${emailBody}`;
+        
         window.location.href = mailtoLink;
     }
 
     async function generateLightPDF() {
         const btn = document.getElementById('genBtn');
-        btn.innerText = "COMPRESSING...";
+        btn.innerText = "SAVING...";
         btn.disabled = true;
 
         const name = document.getElementById('empName').value || "Employee";
@@ -158,20 +178,14 @@
 
         try {
             const canvas = await html2canvas(document.getElementById('pdf-content'), {
-                scale: 1.5, // Sumažintas mastelis (pakankamas ryškumui, bet lengvas)
+                scale: 1.5,
                 useCORS: true,
                 width: 794,
                 windowWidth: 794
             });
 
-            // NAUDOJAMAS JPEG SU SUSPAUDIMU (0.7 = 70% kokybė)
             const imgData = canvas.toDataURL('image/jpeg', 0.7); 
-            const pdf = new jspdf.jsPDF({
-                orientation: 'p',
-                unit: 'mm',
-                format: 'a4',
-                compress: true // Papildomas PDF vidinis suspaudimas
-            });
+            const pdf = new jspdf.jsPDF({ orientation: 'p', unit: 'mm', format: 'a4', compress: true });
 
             pdf.addImage(imgData, 'JPEG', 0, 0, 210, 297);
             pdf.save(`Timesheet_${name.replace(/\s+/g, '_')}.pdf`);
@@ -180,7 +194,7 @@
         } finally {
             capture.style.position = "absolute";
             capture.style.left = "-9999px";
-            btn.innerText = "1. Generate Light PDF";
+            btn.innerText = "1. Generate & Save PDF";
             btn.disabled = false;
         }
     }
