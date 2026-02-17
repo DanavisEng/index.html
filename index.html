@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Danavis Engineering - Weekly Time Report</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <style>
+        :root { --primary-color: #1e2a5e; --secondary-color: #27ae60; }
+        body { font-family: 'Segoe UI', Arial, sans-serif; background: #f4f7f9; padding: 10px; color: #333; margin: 0; }
+        .container { max-width: 850px; margin: auto; background: white; padding: 15px; border-radius: 12px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); }
+        
+        /* Tekstinis Logo Stilius */
+        .text-logo { text-align: center; margin-bottom: 5px; }
+        .logo-main { color: var(--primary-color); font-size: 32px; font-weight: 800; letter-spacing: 1px; margin: 0; }
+        .logo-sub { color: var(--secondary-color); font-size: 24px; font-weight: 400; margin: 0; position: relative; top: -5px; }
+
+        .header { text-align: center; margin-bottom: 20px; border-bottom: 3px solid var(--primary-color); padding-bottom: 15px; }
+        
+        .info-section { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 20px; }
+        .date-selection { background: #f0f4f8; padding: 15px; border-radius: 8px; margin-bottom: 20px; border: 1px solid #d1d9e6; }
+        
+        label { display: block; font-weight: 700; font-size: 12px; text-transform: uppercase; margin-bottom: 5px; color: #555; }
+        input { width: 100%; padding: 12px; border: 1px solid #ced4da; border-radius: 6px; box-sizing: border-box; font-size: 16px; -webkit-appearance: none; }
+        
+        table { width: 100%; border-collapse: collapse; margin-bottom: 20px; }
+        th { background-color: var(--primary-color); color: white; padding: 12px; text-align: left; font-size: 14px; }
+        td { padding: 8px; border: 1px solid #dee2e6; }
+
+        /* Mobilioji versija */
+        @media (max-width: 650px) {
+            .info-section { grid-template-columns: 1fr; }
+            thead { display: none; }
+            tr { display: block; margin-bottom: 20px; border: 2px solid var(--primary-color); border-radius: 8px; padding: 10px; background: #fff; }
+            td { display: flex; justify-content: space-between; align-items: center; border: none; padding: 8px 0; border-bottom: 1px solid #eee; }
+            td::before { content: attr(data-label); font-weight: bold; text-transform: uppercase; font-size: 11px; color: #777; }
+            td input { width: 65% !important; font-size: 14px; padding: 8px; }
+        }
+
+        .total-box { text-align: right; font-size: 22px; font-weight: bold; color: var(--primary-color); padding: 15px 0; }
+        .btn { width: 100%; background: var(--secondary-color); color: white; padding: 20px; border: none; border-radius: 8px; cursor: pointer; font-size: 18px; font-weight: bold; }
+        .btn:hover { background: #219150; }
+        
+        #pdf-capture { position: absolute; left: -9999px; top: 0; }
+        #pdf-content { width: 800px; padding: 40px; background: white; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="header">
+        <div class="text-logo">
+            <h1 class="logo-main">DANAVIS</h1>
+            <h2 class="logo-sub">ENGINEERING</h2>
+        </div>
+        <h2 style="margin: 0; color: var(--primary-color); font-size: 18px; letter-spacing: 2px;">WEEKLY TIME REPORT</h2>
+    </div>
+
+    <div class="info-section">
+        <div>
+            <label>Employee Name</label>
+            <input type="text" id="empName" placeholder="Full Name">
+        </div>
+        <div>
+            <label>Project / Week No.</label>
+            <input type="text" id="projectName" placeholder="e.g. Project X / Week 12">
+        </div>
+    </div>
+
+    <div class="date-selection">
+        <label>Select Week Start (Monday):</label>
+        <input type="date" id="start-date-input" onchange="autoPopulateDates()">
+    </div>
+
+    <table>
+        <thead>
+            <tr>
+                <th style="width: 150px;">Date</th>
+                <th>Project/Task Details</th>
+                <th style="width: 80px;">Hours</th>
+            </tr>
+        </thead>
+        <tbody id="days-table">
+            </tbody>
+    </table>
+
+    <div class="total-box">Total: <span id="total-val">0</span> hrs</div>
+    <button class="btn" onclick="generatePDF()">DOWNLOAD PDF REPORT</button>
+</div>
+
+<div id="pdf-capture">
+    <div id="pdf-content">
+        <div style="text-align: center; margin-bottom: 20px; border-bottom: 2px solid #1e2a5e; padding-bottom: 10px;">
+            <h1 style="color: #1e2a5e; font-size: 36px; margin: 0; font-weight: 800;">DANAVIS</h1>
+            <h2 style="color: #27ae60; font-size: 24px; margin: 0; font-weight: 400; position: relative; top: -5px;">ENGINEERING</h2>
+            <p style="text-transform: uppercase; letter-spacing: 3px; font-size: 14px; margin-top: 10px; color: #555;">Weekly Timesheet</p>
+        </div>
+        
+        <div style="margin: 30px 0; font-size: 16px;">
+            <p><strong>Employee:</strong> <span id="p-name"></span></p>
+            <p><strong>Project:</strong> <span id="p-project"></span></p>
+            <p><strong>Period:</strong> <span id="p-range"></span></p>
+        </div>
+
+        <table style="width: 100%; border-collapse: collapse;">
+            <thead>
+                <tr style="background: #f1f4f8;">
+                    <th style="border: 1px solid #1e2a5e; padding: 10px; text-align: left;">Date</th>
+                    <th style="border: 1px solid #1e2a5e; padding: 10px; text-align: left;">Project / Task Details</th>
+                    <th style="border: 1px solid #1e2a5e; padding: 10px; text-align: center;">Hrs</th>
+                </tr>
+            </thead>
+            <tbody id="p-table-body"></tbody>
+            <tfoot>
+                <tr style="background: #f1f1f1; font-weight: bold;">
+                    <td colspan="2" style="border: 1px solid #1e2a5e; padding: 12px; text-align: right;">Total Weekly Hours:</td>
+                    <td style="border: 1px solid #1e2a5e; padding: 12px; text-align: center;" id="p-total"></td>
+                </tr>
+            </tfoot>
+        </table>
+
+        <div style="margin-top: 80px; display: grid; grid-template-columns: 1fr 1fr; gap: 50px;">
+            <div style="text-align: center;"><div style="border-top: 1px solid #000; padding-top: 5px; font-weight: bold;">Employee Signature</div></div>
+            <div style="text-align: center;"><div style="border-top: 1px solid #000; padding-top: 5px; font-weight: bold;">Supervisor Approval</div></div>
+        </div>
+    </div>
+</div>
+
+<script>
+    const tableBody = document.getElementById('days-table');
+    for(let i=0; i<7; i++) {
+        tableBody.innerHTML += `
+            <tr>
+                <td data-label="Date"><input type="date" class="row-date"></td>
+                <td data-label="Task"><input type="text" class="row-project" placeholder="Describe work..."></td>
+                <td data-label="Hours"><input type="number" class="row-hrs" oninput="calculateTotal()" placeholder="0"></td>
+            </tr>`;
+    }
+
+    function autoPopulateDates() {
+        const start = new Date(document.getElementById('start-date-input').value);
+        if(!isNaN(start)) {
+            document.querySelectorAll('.row-date').forEach((input, i) => {
+                let d = new Date(start);
+                d.setDate(start.getDate() + i);
+                input.value = d.toISOString().split('T')[0];
+            });
+        }
+    }
+
+    function calculateTotal() {
+        let total = 0;
+        document.querySelectorAll('.row-hrs').forEach(input => total += Number(input.value) || 0);
+        document.getElementById('total-val').innerText = total;
+    }
+
+    async function generatePDF() {
+        document.getElementById('p-name').innerText = document.getElementById('empName').value || "---";
+        document.getElementById('p-project').innerText = document.getElementById('projectName').value || "---";
+        document.getElementById('p-total').innerText = document.getElementById('total-val').innerText + " hrs";
+        
+        const dates = document.querySelectorAll('.row-date');
+        const projs = document.querySelectorAll('.row-project');
+        const hours = document.querySelectorAll('.row-hrs');
+
+        if(dates[0].value) document.getElementById('p-range').innerText = dates[0].value + " to " + (dates[6].value || "");
+
+        let rowsHtml = "";
+        dates.forEach((d, i) => {
+            if(d.value || hours[i].value || projs[i].value) {
+                rowsHtml += `<tr>
+                    <td style="border: 1px solid #ddd; padding: 10px;">${d.value || '---'}</td>
+                    <td style="border: 1px solid #ddd; padding: 10px;">${projs[i].value || '---'}</td>
+                    <td style="border: 1px solid #ddd; padding: 10px; text-align: center;">${hours[i].value || 0}</td>
+                </tr>`;
+            }
+        });
+        document.getElementById('p-table-body').innerHTML = rowsHtml;
+
+        const capture = document.getElementById('pdf-capture');
+        capture.style.position = "static";
+        const canvas = await html2canvas(document.getElementById('pdf-content'), { scale: 2 });
+        const imgData = canvas.toDataURL('image/png');
+        const pdf = new jspdf.jsPDF('p', 'mm', 'a4');
+        pdf.addImage(imgData, 'PNG', 0, 0, 210, (canvas.height * 210) / canvas.width);
+        pdf.save(`Timesheet_${document.getElementById('empName').value || 'Report'}.pdf`);
+        capture.style.position = "absolute";
+        capture.style.left = "-9999px";
+    }
+</script>
+</body>
+</html>
