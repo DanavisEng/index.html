@@ -11,10 +11,16 @@
         :root { --primary: #1e2a5e; --secondary: #27ae60; --mail-btn: #007bff; }
         body { font-family: 'Segoe UI', Arial, sans-serif; background: #f4f7f9; padding: 10px; color: #333; margin: 0; }
         .container { max-width: 850px; margin: auto; background: white; padding: 15px; border-radius: 12px; box-shadow: 0 5px 15px rgba(0,0,0,0.1); }
+        
+        /* Logo Header Style */
         .header { text-align: center; border-bottom: 3px solid var(--primary); padding-bottom: 10px; margin-bottom: 20px; }
+        .logo-main { color: var(--primary); margin: 0; font-size: 32px; font-weight: 800; letter-spacing: 2px; text-transform: uppercase; }
+        .logo-sub { color: var(--secondary); margin: 0; font-size: 32px; font-weight: 800; letter-spacing: 2px; text-transform: uppercase; margin-top: -5px; }
+
         .info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 15px; }
         label { display: block; font-weight: bold; font-size: 11px; text-transform: uppercase; color: #666; margin-bottom: 4px; }
         input { width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 6px; box-sizing: border-box; font-size: 16px; -webkit-appearance: none; }
+        
         table { width: 100%; border-collapse: collapse; }
         th { background: var(--primary); color: white; padding: 10px; font-size: 13px; }
         td { border: 1px solid #ddd; padding: 5px; }
@@ -28,8 +34,21 @@
             td input { width: 60% !important; border: none; background: #f9f9f9; }
         }
 
-        .btn-group { display: flex; flex-direction: column; gap: 10px; margin-top: 20px; }
-        .btn { width: 100%; color: white; padding: 18px; border: none; border-radius: 8px; cursor: pointer; font-size: 16px; font-weight: bold; text-transform: uppercase; }
+        /* Total Hours Box */
+        .live-total-container {
+            background: #eef2f7;
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 20px;
+            text-align: right;
+            border-left: 5px solid var(--secondary);
+        }
+        .live-total-label { font-size: 14px; color: #555; font-weight: bold; text-transform: uppercase; }
+        .live-total-value { font-size: 24px; color: var(--primary); font-weight: 800; margin-left: 10px; }
+
+        .btn-group { display: flex; flex-direction: column; gap: 10px; margin-top: 15px; }
+        .btn { width: 100%; color: white; padding: 18px; border: none; border-radius: 8px; cursor: pointer; font-size: 16px; font-weight: bold; text-transform: uppercase; transition: 0.3s; }
+        .btn:active { transform: scale(0.98); }
         .btn-pdf { background: var(--secondary); }
         .btn-mail { background: var(--mail-btn); text-decoration: none; text-align: center; display: block; box-sizing: border-box; }
 
@@ -44,8 +63,8 @@
 
 <div class="container">
     <div class="header">
-        <h1 style="color:var(--primary); margin:0;">DANAVIS</h1>
-        <h3 style="color:var(--secondary); margin:0;">ENGINEERING</h3>
+        <h1 class="logo-main">DANAVIS</h1>
+        <h1 class="logo-sub">ENGINEERING</h1>
     </div>
 
     <div class="info-grid">
@@ -65,6 +84,11 @@
         <tbody id="table-body"></tbody>
     </table>
 
+    <div class="live-total-container">
+        <span class="live-total-label">Total Hours This Week:</span>
+        <span class="live-total-value" id="live-total-display">0</span>
+    </div>
+
     <div class="btn-group">
         <button class="btn btn-pdf" id="genBtn" onclick="generateLightPDF()">1. Generate & Save PDF</button>
         <button class="btn btn-mail" id="mailBtn" onclick="prepareEmail()">2. Send Email to Management</button>
@@ -73,14 +97,12 @@
 
 <div id="pdf-capture">
     <div id="pdf-content">
-        <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #1e2a5e; padding-bottom: 10px;">
-            <div>
-                <h1 style="color: #1e2a5e; margin: 0; font-size: 28px;">DANAVIS</h1>
-                <h2 style="color: #27ae60; margin: 0; font-size: 20px;">ENGINEERING</h2>
-            </div>
-            <div style="text-align: right;"><h3 style="margin:0; color: #555;">WEEKLY TIMESHEET</h3></div>
+        <div style="text-align: center; border-bottom: 2px solid #1e2a5e; padding-bottom: 15px;">
+            <h1 style="color: #1e2a5e; margin: 0; font-size: 36px; font-weight: 800; letter-spacing: 2px;">DANAVIS</h1>
+            <h1 style="color: #27ae60; margin: 0; font-size: 36px; font-weight: 800; letter-spacing: 2px; margin-top: -5px;">ENGINEERING</h1>
+            <p style="text-transform: uppercase; letter-spacing: 4px; font-size: 14px; margin-top: 10px; color: #555;">Weekly Timesheet Report</p>
         </div>
-        <div style="margin-top: 30px; font-size: 16px;">
+        <div style="margin-top: 40px; font-size: 16px;">
             <p><strong>Employee:</strong> <span id="p-name"></span></p>
             <p><strong>Project:</strong> <span id="p-project"></span></p>
             <p><strong>Period:</strong> <span id="p-range"></span></p>
@@ -91,20 +113,29 @@
             <tfoot><tr style="font-weight: bold;"><td colspan="2" style="text-align: right;">Total Hours:</td><td style="text-align: center;" id="p-total">0</td></tr></tfoot>
         </table>
         <div style="position: absolute; bottom: 80px; left: 60px; right: 60px; display: flex; justify-content: space-between;">
-            <div style="width: 200px; border-top: 1px solid #333; text-align: center; padding-top: 5px; font-size: 12px;">Employee Signature</div>
-            <div style="width: 200px; border-top: 1px solid #333; text-align: center; padding-top: 5px; font-size: 12px;">Supervisor Approval</div>
+            <div style="width: 220px; border-top: 1px solid #333; text-align: center; padding-top: 8px; font-size: 13px;">Employee Signature</div>
+            <div style="width: 220px; border-top: 1px solid #333; text-align: center; padding-top: 8px; font-size: 13px;">Supervisor Approval</div>
         </div>
     </div>
 </div>
 
 <script>
+    // Build table rows
     const body = document.getElementById('table-body');
     for(let i=0; i<7; i++) {
         body.innerHTML += `<tr>
             <td data-label="Date"><input type="date" class="r-date"></td>
             <td data-label="Task"><input type="text" class="r-task" placeholder="..."></td>
-            <td data-label="Hrs"><input type="number" class="r-hrs" placeholder="0"></td>
+            <td data-label="Hrs"><input type="number" class="r-hrs" placeholder="0" oninput="updateLiveTotal()"></td>
         </tr>`;
+    }
+
+    function updateLiveTotal() {
+        let total = 0;
+        document.querySelectorAll('.r-hrs').forEach(input => {
+            total += parseFloat(input.value) || 0;
+        });
+        document.getElementById('live-total-display').innerText = total;
     }
 
     function fillDates() {
@@ -125,25 +156,20 @@
         const tasks = document.querySelectorAll('.r-task');
         const hours = document.querySelectorAll('.r-hrs');
         
-        let total = 0;
+        let total = document.getElementById('live-total-display').innerText;
         let workSummary = "";
 
         dates.forEach((d, i) => {
             const h = parseFloat(hours[i].value) || 0;
             if (h > 0) {
-                total += h;
                 workSummary += `- ${d.value}: ${tasks[i].value || 'No description'} (${h} hrs)%0D%0A`;
             }
         });
 
-        const subject = encodeURIComponent(`Timesheet Report - ${name} - ${project}`);
-        
-        // E-mail Body Template
-        const emailBody = `Dear Management,%0D%0A%0D%0APlease find my weekly timesheet report attached.%0D%0A%0D%0A--- REPORT SUMMARY ---%0D%0AEmployee: ${name}%0D%0AProject/Ref: ${project}%0D%0ATotal Hours: ${total} hrs%0D%0A%0D%0ADaily breakdown:%0D%0A${workSummary}%0D%0A----------------------%0D%0A%0D%0AKind regards,%0D%0A${name}`;
+        const subject = encodeURIComponent(`Timesheet - ${name} - ${project}`);
+        const emailBody = `Dear Management,%0D%0A%0D%0APlease find my weekly timesheet report attached.%0D%0A%0D%0A--- REPORT SUMMARY ---%0D%0AEmployee: ${name}%0D%0AProject: ${project}%0D%0ATotal Hours: ${total} hrs%0D%0A%0D%0ADaily breakdown:%0D%0A${workSummary}%0D%0A----------------------%0D%0A%0D%0AKind regards,%0D%0A${name}`;
 
-        const mailtoLink = `mailto:projects@danavisengineering.com?subject=${subject}&body=${emailBody}`;
-        
-        window.location.href = mailtoLink;
+        window.location.href = `mailto:projects@danavisengineering.com?subject=${subject}&body=${emailBody}`;
     }
 
     async function generateLightPDF() {
@@ -155,7 +181,7 @@
         document.getElementById('p-name').innerText = name;
         document.getElementById('p-project').innerText = document.getElementById('projectName').value || "---";
         
-        let total = 0;
+        let total = document.getElementById('live-total-display').innerText;
         let rowsHtml = "";
         const dates = document.querySelectorAll('.r-date');
         const tasks = document.querySelectorAll('.r-task');
@@ -163,7 +189,6 @@
 
         dates.forEach((d, i) => {
             const h = parseFloat(hours[i].value) || 0;
-            total += h;
             rowsHtml += `<tr><td>${d.value || '---'}</td><td>${tasks[i].value || '---'}</td><td style="text-align:center;">${h}</td></tr>`;
         });
         
