@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Danavis Engineering - A4 Report</title>
+    <title>Danavis Engineering - Light PDF Report</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     
@@ -11,12 +11,10 @@
         :root { --primary: #1e2a5e; --secondary: #27ae60; --mail-btn: #007bff; }
         body { font-family: 'Segoe UI', Arial, sans-serif; background: #f4f7f9; padding: 10px; color: #333; margin: 0; }
         .container { max-width: 850px; margin: auto; background: white; padding: 15px; border-radius: 12px; box-shadow: 0 5px 15px rgba(0,0,0,0.1); }
-        
         .header { text-align: center; border-bottom: 3px solid var(--primary); padding-bottom: 10px; margin-bottom: 20px; }
         .info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 15px; }
         label { display: block; font-weight: bold; font-size: 11px; text-transform: uppercase; color: #666; margin-bottom: 4px; }
         input { width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 6px; box-sizing: border-box; font-size: 16px; -webkit-appearance: none; }
-        
         table { width: 100%; border-collapse: collapse; }
         th { background: var(--primary); color: white; padding: 10px; font-size: 13px; }
         td { border: 1px solid #ddd; padding: 5px; }
@@ -35,16 +33,9 @@
         .btn-pdf { background: var(--secondary); }
         .btn-mail { background: var(--mail-btn); text-decoration: none; text-align: center; display: block; box-sizing: border-box; }
 
-        /* --- PDF TEMPLATE (EXACT A4) --- */
+        /* PDF TEMPLATE (A4) */
         #pdf-capture { position: absolute; left: -9999px; top: 0; }
-        #pdf-content { 
-            width: 794px; 
-            height: 1123px; 
-            padding: 60px; 
-            box-sizing: border-box; 
-            background: white; 
-            position: relative;
-        }
+        #pdf-content { width: 794px; height: 1123px; padding: 60px; box-sizing: border-box; background: white; position: relative; }
         .pdf-table { width: 100%; border-collapse: collapse; margin-top: 20px; }
         .pdf-table th, .pdf-table td { border: 1px solid #333; padding: 8px; text-align: left; }
     </style>
@@ -59,7 +50,7 @@
 
     <div class="info-grid">
         <div><label>First and Last Name</label><input type="text" id="empName" placeholder="e.g. John Doe"></div>
-        <div><label>Project / Week No.</label><input type="text" id="projectName" placeholder="e.g. Site A / Week 08"></div>
+        <div><label>Project / Week No.</label><input type="text" id="projectName" placeholder="e.g. Site A / Week 12"></div>
     </div>
 
     <div style="margin-bottom:15px;">
@@ -67,7 +58,7 @@
         <input type="date" id="monday-date" onchange="fillDates()">
     </div>
 
-    <table id="input-table">
+    <table>
         <thead>
             <tr><th>Date</th><th>Task Description</th><th>Hrs</th></tr>
         </thead>
@@ -75,8 +66,8 @@
     </table>
 
     <div class="btn-group">
-        <button class="btn btn-pdf" id="genBtn" onclick="generateA4PDF()">1. Generate A4 PDF</button>
-        <a href="#" class="btn btn-mail" id="mailBtn" onclick="prepareEmail()">2. Prepare Email to Management</a>
+        <button class="btn btn-pdf" id="genBtn" onclick="generateLightPDF()">1. Generate Light PDF</button>
+        <a href="#" class="btn btn-mail" id="mailBtn" onclick="prepareEmail()">2. Prepare Email</a>
     </div>
 </div>
 
@@ -87,48 +78,31 @@
                 <h1 style="color: #1e2a5e; margin: 0; font-size: 28px;">DANAVIS</h1>
                 <h2 style="color: #27ae60; margin: 0; font-size: 20px;">ENGINEERING</h2>
             </div>
-            <div style="text-align: right;">
-                <h3 style="margin:0; color: #555;">WEEKLY TIMESHEET</h3>
-            </div>
+            <div style="text-align: right;"><h3 style="margin:0; color: #555;">WEEKLY TIMESHEET</h3></div>
         </div>
-
-        <div style="margin-top: 30px; font-size: 16px; line-height: 1.8;">
+        <div style="margin-top: 30px; font-size: 16px;">
             <p><strong>Employee:</strong> <span id="p-name"></span></p>
-            <p><strong>Project / Reference:</strong> <span id="p-project"></span></p>
-            <p><strong>Reporting Period:</strong> <span id="p-range"></span></p>
+            <p><strong>Project:</strong> <span id="p-project"></span></p>
+            <p><strong>Period:</strong> <span id="p-range"></span></p>
         </div>
-
         <table class="pdf-table">
-            <thead>
-                <tr style="background: #f0f0f0;">
-                    <th style="width: 20%;">Date</th>
-                    <th style="width: 65%;">Description of Tasks</th>
-                    <th style="width: 15%; text-align: center;">Hours</th>
-                </tr>
-            </thead>
+            <thead><tr style="background: #f0f0f0;"><th>Date</th><th>Description</th><th style="text-align:center;">Hrs</th></tr></thead>
             <tbody id="p-body"></tbody>
-            <tfoot>
-                <tr style="font-weight: bold;">
-                    <td colspan="2" style="text-align: right;">Total Weekly Hours:</td>
-                    <td style="text-align: center;" id="p-total">0</td>
-                </tr>
-            </tfoot>
+            <tfoot><tr style="font-weight: bold;"><td colspan="2" style="text-align: right;">Total Hours:</td><td style="text-align: center;" id="p-total">0</td></tr></tfoot>
         </table>
-
         <div style="position: absolute; bottom: 80px; left: 60px; right: 60px; display: flex; justify-content: space-between;">
-            <div style="width: 200px; border-top: 1px solid #333; text-align: center; padding-top: 5px; font-size: 14px;">Employee Signature</div>
-            <div style="width: 200px; border-top: 1px solid #333; text-align: center; padding-top: 5px; font-size: 14px;">Supervisor Approval</div>
+            <div style="width: 200px; border-top: 1px solid #333; text-align: center; padding-top: 5px; font-size: 12px;">Employee Signature</div>
+            <div style="width: 200px; border-top: 1px solid #333; text-align: center; padding-top: 5px; font-size: 12px;">Supervisor Approval</div>
         </div>
     </div>
 </div>
 
 <script>
-    // Fill the table with 7 rows
     const body = document.getElementById('table-body');
     for(let i=0; i<7; i++) {
         body.innerHTML += `<tr>
             <td data-label="Date"><input type="date" class="r-date"></td>
-            <td data-label="Task"><input type="text" class="r-task" placeholder="Worked on..."></td>
+            <td data-label="Task"><input type="text" class="r-task" placeholder="Task details..."></td>
             <td data-label="Hrs"><input type="number" class="r-hrs" placeholder="0"></td>
         </tr>`;
     }
@@ -147,39 +121,30 @@
     function prepareEmail() {
         const name = document.getElementById('empName').value || "Employee";
         const project = document.getElementById('projectName').value || "Project";
-        let totalHours = 0;
-        document.querySelectorAll('.r-hrs').forEach(h => totalHours += parseFloat(h.value) || 0);
-
         const subject = encodeURIComponent(`Timesheet - ${name} - ${project}`);
-        const bodyText = encodeURIComponent(`Hi,\n\nPlease find my weekly timesheet report attached.\n\nEmployee: ${name}\nProject: ${project}\nTotal Hours: ${totalHours}\n\nKind regards,`);
-        
-        const mailtoLink = `mailto:projects@danavisengineering.com?subject=${subject}&body=${bodyText}`;
+        const mailtoLink = `mailto:projects@danavisengineering.com?subject=${subject}`;
         window.location.href = mailtoLink;
     }
 
-    async function generateA4PDF() {
+    async function generateLightPDF() {
         const btn = document.getElementById('genBtn');
-        btn.innerText = "PREPARING PDF...";
+        btn.innerText = "COMPRESSING...";
         btn.disabled = true;
 
         const name = document.getElementById('empName').value || "Employee";
         document.getElementById('p-name').innerText = name;
         document.getElementById('p-project').innerText = document.getElementById('projectName').value || "---";
         
+        let total = 0;
+        let rowsHtml = "";
         const dates = document.querySelectorAll('.r-date');
         const tasks = document.querySelectorAll('.r-task');
         const hours = document.querySelectorAll('.r-hrs');
-        
-        let total = 0;
-        let rowsHtml = "";
+
         dates.forEach((d, i) => {
             const h = parseFloat(hours[i].value) || 0;
             total += h;
-            rowsHtml += `<tr>
-                <td>${d.value || '---'}</td>
-                <td>${tasks[i].value || '---'}</td>
-                <td style="text-align:center;">${h}</td>
-            </tr>`;
+            rowsHtml += `<tr><td>${d.value || '---'}</td><td>${tasks[i].value || '---'}</td><td style="text-align:center;">${h}</td></tr>`;
         });
         
         document.getElementById('p-body').innerHTML = rowsHtml;
@@ -193,27 +158,32 @@
 
         try {
             const canvas = await html2canvas(document.getElementById('pdf-content'), {
-                scale: 2,
+                scale: 1.5, // Sumažintas mastelis (pakankamas ryškumui, bet lengvas)
                 useCORS: true,
                 width: 794,
-                height: 1123,
                 windowWidth: 794
             });
 
-            const imgData = canvas.toDataURL('image/png');
-            const pdf = new jspdf.jsPDF('p', 'mm', 'a4');
-            pdf.addImage(imgData, 'PNG', 0, 0, 210, 297);
+            // NAUDOJAMAS JPEG SU SUSPAUDIMU (0.7 = 70% kokybė)
+            const imgData = canvas.toDataURL('image/jpeg', 0.7); 
+            const pdf = new jspdf.jsPDF({
+                orientation: 'p',
+                unit: 'mm',
+                format: 'a4',
+                compress: true // Papildomas PDF vidinis suspaudimas
+            });
+
+            pdf.addImage(imgData, 'JPEG', 0, 0, 210, 297);
             pdf.save(`Timesheet_${name.replace(/\s+/g, '_')}.pdf`);
         } catch (e) {
             alert("Error: " + e);
         } finally {
             capture.style.position = "absolute";
             capture.style.left = "-9999px";
-            btn.innerText = "1. Generate A4 PDF";
+            btn.innerText = "1. Generate Light PDF";
             btn.disabled = false;
         }
     }
 </script>
 </body>
 </html>
-
