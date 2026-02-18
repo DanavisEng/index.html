@@ -12,7 +12,6 @@
         body { font-family: 'Segoe UI', Arial, sans-serif; background: #f4f7f9; padding: 10px; color: #333; margin: 0; }
         .container { max-width: 850px; margin: auto; background: white; padding: 15px; border-radius: 12px; box-shadow: 0 5px 15px rgba(0,0,0,0.1); }
         
-        /* Logo Header Style */
         .header { text-align: center; border-bottom: 3px solid var(--primary); padding-bottom: 10px; margin-bottom: 20px; }
         .logo-main { color: var(--primary); margin: 0; font-size: 32px; font-weight: 800; letter-spacing: 2px; text-transform: uppercase; }
         .logo-sub { color: var(--secondary); margin: 0; font-size: 32px; font-weight: 800; letter-spacing: 2px; text-transform: uppercase; margin-top: -5px; }
@@ -21,6 +20,8 @@
         label { display: block; font-weight: bold; font-size: 11px; text-transform: uppercase; color: #666; margin-bottom: 4px; }
         input { width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 6px; box-sizing: border-box; font-size: 16px; -webkit-appearance: none; }
         
+        .full-width { grid-column: 1 / -1; }
+
         table { width: 100%; border-collapse: collapse; }
         th { background: var(--primary); color: white; padding: 10px; font-size: 13px; }
         td { border: 1px solid #ddd; padding: 5px; }
@@ -34,7 +35,6 @@
             td input { width: 60% !important; border: none; background: #f9f9f9; }
         }
 
-        /* Total Hours Box */
         .live-total-container {
             background: #eef2f7;
             padding: 15px;
@@ -52,7 +52,6 @@
         .btn-pdf { background: var(--secondary); }
         .btn-mail { background: var(--mail-btn); text-decoration: none; text-align: center; display: block; box-sizing: border-box; }
 
-        /* PDF TEMPLATE (A4) */
         #pdf-capture { position: absolute; left: -9999px; top: 0; }
         #pdf-content { width: 794px; height: 1123px; padding: 60px; box-sizing: border-box; background: white; position: relative; }
         .pdf-table { width: 100%; border-collapse: collapse; margin-top: 20px; }
@@ -69,7 +68,8 @@
 
     <div class="info-grid">
         <div><label>First and Last Name</label><input type="text" id="empName" placeholder="John Doe"></div>
-        <div><label>Project / Week No.</label><input type="text" id="projectName" placeholder="Site X / Week 12"></div>
+        <div><label>Project Name / Ref</label><input type="text" id="projectName" placeholder="Site X"></div>
+        <div class="full-width"><label>Your Personal Email (for CC)</label><input type="email" id="senderEmail" placeholder="your.name@danavisengineering.com"></div>
     </div>
 
     <div style="margin-bottom:15px;">
@@ -120,7 +120,6 @@
 </div>
 
 <script>
-    // Build table rows
     const body = document.getElementById('table-body');
     for(let i=0; i<7; i++) {
         body.innerHTML += `<tr>
@@ -149,9 +148,26 @@
         }
     }
 
+    function getWeekNumber(d) {
+        d = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()));
+        d.setUTCDate(d.getUTCDate() + 4 - (d.getUTCDay() || 7));
+        var yearStart = new Date(Date.UTC(d.getUTCFullYear(), 0, 1));
+        var weekNo = Math.ceil((((d - yearStart) / 86400000) + 1) / 7);
+        return weekNo;
+    }
+
     function prepareEmail() {
         const name = document.getElementById('empName').value || "Employee";
         const project = document.getElementById('projectName').value || "Project";
+        const ccEmail = document.getElementById('senderEmail').value || "";
+        const mondayInput = document.getElementById('monday-date').value;
+        
+        let weekPrefix = "";
+        if(mondayInput) {
+            const dateObj = new Date(mondayInput);
+            weekPrefix = "Week " + getWeekNumber(dateObj) + " - ";
+        }
+
         const dates = document.querySelectorAll('.r-date');
         const tasks = document.querySelectorAll('.r-task');
         const hours = document.querySelectorAll('.r-hrs');
@@ -166,10 +182,11 @@
             }
         });
 
-        const subject = encodeURIComponent(`Timesheet - ${name} - ${project}`);
+        const subject = encodeURIComponent(`${weekPrefix}${name} - ${project}`);
         const emailBody = `Dear Management,%0D%0A%0D%0APlease find my weekly timesheet report attached.%0D%0A%0D%0A--- REPORT SUMMARY ---%0D%0AEmployee: ${name}%0D%0AProject: ${project}%0D%0ATotal Hours: ${total} hrs%0D%0A%0D%0ADaily breakdown:%0D%0A${workSummary}%0D%0A----------------------%0D%0A%0D%0AKind regards,%0D%0A${name}`;
 
-        window.location.href = `mailto:projects@danavisengineering.com?subject=${subject}&body=${emailBody}`;
+        // Added CC field to the mailto link
+        window.location.href = `mailto:projects@danavisengineering.com?cc=${ccEmail}&subject=${subject}&body=${emailBody}`;
     }
 
     async function generateLightPDF() {
